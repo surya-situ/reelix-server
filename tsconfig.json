@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    /* Language and Environment */
+    "target": "es2016",                 // ES2016 is a good choice for Node.js environments
+    "module": "commonjs",               // Node.js uses CommonJS for modules
+    "rootDir": "./src",                 // Source code directory
+    "outDir": "./dist",                 // Compiled output directory
+    "esModuleInterop": true,            // Ensures compatibility with CommonJS modules
+    "resolveJsonModule": true,          // Allows importing JSON files
+    "forceConsistentCasingInFileNames": true,  // Enforces consistent file casing
+
+    /* Type Checking */
+    "strict": true,                     // Enables strict type checking
+    "skipLibCheck": true,               // Skips type checking of declaration files for faster compilation
+    "noImplicitAny": true,              // Prevents implicit `any` types
+    "strictNullChecks": true            // Ensures stricter null checks
+  },
+  "include": [
+    "src/**/*.ts"                       // Specifies the source files to include
+  ],
+  "exclude": [
+    "node_modules"                      // Excludes node_modules from type checking
+  ]
+}
