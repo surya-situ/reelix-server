@@ -9,10 +9,33 @@ services:
     volumes: 
       - redis_data:/data
     networks: 
-      - redis_network
+      - app_network
+
+  postgres:
+    image: postgres:latest
+    container_name: reelix-postgres
+    environment:
+      POSTGRES_USER: reelix
+      POSTGRES_PASSWORD: reelixServerPassword
+      POSTGRES_DB: reelix-database
+    ports:
+      - '5433:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app_network
+
+  adminer:
+    image: adminer:latest
+    container_name: reelix-adminer
+    ports:
+      - '8080:8080'
+    networks:
+      - app_network
 
 networks:
-  redis_network: {}
+  app_network: {}
 
 volumes:
   redis_data:
+  postgres_data:
