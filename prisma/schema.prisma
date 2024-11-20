@@ -17,7 +17,7 @@ model User {
   id                            String     @id @default(uuid()) @db.Uuid
   name                          String     @db.VarChar(120)
   email                         String     @unique
-  passsword                     String
+  password                      String
   is_verified                   Boolean    @default(false)
   email_verify_token            String?
   email_verify_token_expire_at  DateTime?
