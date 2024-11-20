@@ -1,10 +1,12 @@
-import express, { Application, Request, Response } from "express";
+import express, { Application } from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import { createServer } from "http";
 import { Server } from "socket.io";
 
 import { appLimiter } from "./utils/rateLimit";
+import { globalError } from "./middlewares/globalError"
+import router from "./routes/index.routes";
 
 dotenv.config();
 const PORT = process.env.PORT;
@@ -22,16 +24,13 @@ const io = new Server(server, {
 app.use(express.json());
 app.use(cors());
 app.use(appLimiter);
+app.use(globalError);
 
 //- VIEW ENGINE
 
+
 //- ROUTE
-app.get('/', function (req: Request, res: Response) {
-    res.status(200).json({
-        message: "server is running..."
-    });
-    return;
-});
+app.use(router);
 
 io.on("connection", function(socket){
     console.log("Socket io is connected", socket);
