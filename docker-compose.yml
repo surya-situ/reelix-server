@@ -25,11 +25,14 @@ services:
     networks:
       - app_network
 
-  adminer:
-    image: adminer:latest
-    container_name: reelix-adminer
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: reelix-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@reelix.com
+      PGADMIN_DEFAULT_PASSWORD: reelixPassword
     ports:
-      - '8080:8080'
+      - "5050:80"
     networks:
       - app_network
 
