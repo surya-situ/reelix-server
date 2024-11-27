@@ -27,7 +27,7 @@ app.use(appLimiter);
 app.use(globalError);
 
 //- VIEW ENGINE
-
+app.set("view engine", "ejs");
 
 //- ROUTE
 app.use(router);

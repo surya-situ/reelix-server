@@ -6,7 +6,7 @@ export const appLimiter = rateLimit(
         limit: 200,
         standardHeaders: 'draft-7',
         legacyHeaders: false,
-	message: {
+	    message: {
         	status: 429,
         	error: "Too many requests, please try again after some time.",
     	}
@@ -19,7 +19,7 @@ export const authLimiter = rateLimit(
         limit: 20,
         standardHeaders: 'draft-7',
         legacyHeaders: false,
-	message: {
+	    message: {
         	status: 429,
         	error: "Too many attempts, please try again after some time.",
     	}

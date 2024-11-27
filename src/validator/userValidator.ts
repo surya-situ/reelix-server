@@ -19,4 +19,4 @@ export const loginSchema = z.object(
             .email({ message: "Invalid email address" }),
         password: z.string({ message: "Password is required" })
     }
-)
+);
