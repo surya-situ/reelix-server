@@ -4,9 +4,9 @@
   "description": "A video duel application where user can create a duel between 2 videos and make a duel out of it",
   "main": "server.js",
   "scripts": {
-    "build": "tsc -b",
+    "build": "tsc -b && cp -r src/views dist/views",
     "start": "node dist/server.js",
-    "dev": "npm run build && nodemon --watch src --ext ts --exec \"npm run build && node dist/server.js\""
+    "dev": "npm run build && nodemon --watch src --ext ts,ejs --exec \"npm run build && node dist/server.js\""
   },
   "repository": {
     "type": "git",
@@ -41,6 +41,7 @@
     "@types/bcrypt": "^5.0.2",
     "@types/cors": "^2.8.17",
     "@types/dotenv": "^8.2.3",
+    "@types/ejs": "^3.1.5",
     "@types/express": "^5.0.0",
     "@types/jsonwebtoken": "^9.0.7",
     "@types/nodemailer": "^6.4.17"
