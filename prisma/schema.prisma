@@ -19,10 +19,10 @@ model User {
   email                         String     @unique
   password                      String
   is_verified                   Boolean    @default(false)
-  email_verify_token            String?
-  email_verify_token_expire_at  DateTime?
-  password_reset_token          String?
-  reset_token_expire_at         DateTime?
+  otp                           String?
+  otp_expire_at                 DateTime?
+  password_reset_otp            String?
+  reset_otp_expire_at           DateTime?
   created_at                    DateTime   @default(now())
   updated_at                    DateTime   @updatedAt
 }
