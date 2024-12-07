@@ -5,6 +5,7 @@ import bcrypt from "bcrypt";
 import { randomInt } from "crypto";
 import ejs from "ejs";
 import Redis from "ioredis";
+import jwt from "jsonwebtoken";
 
 import { authLimiter } from "../utils/rateLimit";
 import { signUpSchema } from "../validator/userValidator";
@@ -55,6 +56,16 @@ router.post('/signup', authLimiter, async ( req: Request, res: Response, next: N
         const templatePath = path.resolve(__dirname, "../views/welcome.ejs");
         const emailHtml = await ejs.renderFile(templatePath, { name, otp });
 
+        if (!process.env.JWT_SECRET) {
+            throw new Error("JWT_SECRET is not defined in environment variables.");
+        }
+
+        const tempToken = jwt.sign(
+            { email },
+            process.env.JWT_SECRET,
+            { expiresIn: "5m" }
+        );
+
         // - Send email with OTP
         try {
             await sendEmail(email, "Email Verification OTP", emailHtml);
@@ -79,7 +90,8 @@ router.post('/signup', authLimiter, async ( req: Request, res: Response, next: N
             {
                 status: "success",
                 message: "User created and OTP sent to email",
-                data: newUser
+                data: newUser,
+                token: tempToken as string
             }
         );
         return;
