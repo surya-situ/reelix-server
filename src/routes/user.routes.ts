@@ -10,20 +10,23 @@ import jwt from "jsonwebtoken";
 import { authLimiter } from "../utils/rateLimit";
 import { signUpSchema } from "../validator/userValidator";
 import { appError } from "../utils/appError";
+import { formatZodErrors } from "../middlewares/globalError";
 import { sendEmail } from "../utils/email/emailStore";
 
 const router = Router();
 const prisma = new PrismaClient();
 const redis = new Redis();
 
+// - SIGN UP route: 
 router.post('/signup', authLimiter, async ( req: Request, res: Response, next: NextFunction ) => {
     const data = req.body;
+
+    // Validating the incoming data using Zod schema
     const payload = signUpSchema.safeParse(data);
 
     if( !payload.success ) {
-        res.status(422).json({
-            message: "validation error"
-        });
+        const zodError = formatZodErrors(payload.error)
+        next(appError(422, "validation error", zodError))
         return 
     };
 
@@ -39,20 +42,21 @@ router.post('/signup', authLimiter, async ( req: Request, res: Response, next: N
         );
 
         if( existingUser ) {
-            res.status(422).json({
-                message: "user already exists"
-            })
+            next(appError(422, "User already exists"));
             return;
         };
 
         // - Encrypt password;
         const encryptPassword = await bcrypt.hash(password, 10);
 
-        // - OTP
+        // - OTP ( one-time password ) for email verification
         const otp = randomInt(100000, 999999).toString();
-        const otpExpireTime = 5 * 60; // 5 minutes
+        const otpExpireTime = 5 * 60; // OTP expiration time in seconds (5 minutes)
+
+        // - Store the OTP in Redis with an expiration time
         await redis.setex(email, otpExpireTime, otp);
 
+        // - Rendering ejs for email
         const templatePath = path.resolve(__dirname, "../views/welcome.ejs");
         const emailHtml = await ejs.renderFile(templatePath, { name, otp });
 
@@ -60,13 +64,14 @@ router.post('/signup', authLimiter, async ( req: Request, res: Response, next: N
             throw new Error("JWT_SECRET is not defined in environment variables.");
         }
 
+        // - Generating a temporary JWT token to allow further user's email verification
         const tempToken = jwt.sign(
             { email },
             process.env.JWT_SECRET,
             { expiresIn: "5m" }
         );
 
-        // - Send email with OTP
+        // - Attempt to send the OTP email to the user
         try {
             await sendEmail(email, "Email Verification OTP", emailHtml);
         } catch (emailError) {
@@ -74,6 +79,7 @@ router.post('/signup', authLimiter, async ( req: Request, res: Response, next: N
             return next(appError(500, "Failed to send email"));
         };
 
+        // - Creating new user in the db
         const newUser = await prisma.user.create(
             {
                 data: {
@@ -90,8 +96,8 @@ router.post('/signup', authLimiter, async ( req: Request, res: Response, next: N
             {
                 status: "success",
                 message: "User created and OTP sent to email",
-                data: newUser,
-                token: tempToken as string
+                data: newUser, // User data
+                token: tempToken as string // Jwt token for user email verification in verify route
             }
         );
         return;
