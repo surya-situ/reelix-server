@@ -24,13 +24,12 @@ const io = new Server(server, {
 app.use(express.json());
 app.use(cors());
 app.use(appLimiter);
-app.use(globalError);
-
-//- VIEW ENGINE
-app.set("view engine", "ejs");
 
 //- ROUTE
 app.use(router);
+
+// - GLOBAL ERROR
+app.use(globalError);
 
 io.on("connection", function(socket){
     console.log("Socket io is connected", socket);
