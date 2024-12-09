@@ -31,12 +31,8 @@ router.post("/verify-otp", otpVerifyLimiter, async (req: Request, res: Response,
     };
 
     try {
-        if( !process.env.JWT_SECRET ) {
-            throw new Error("No jwt secret is provided in the environment");
-        };
-
         // - Decode the temporary token to get the user's email
-        const decode = jwt.verify( tempToken, process.env.JWT_SECRET) as { email: string };
+        const decode = jwt.verify( tempToken, process.env.JWT_SECRET!) as { email: string };
         const { otp }= payload.data;
 
         // - Get the OTP stored in Redis (for that specific user's email)
@@ -68,7 +64,7 @@ router.post("/verify-otp", otpVerifyLimiter, async (req: Request, res: Response,
         // - Permanent token for the user, valid for 7 days
         const permanentToken = jwt.sign(
             { userId: user.id },
-            process.env.JWT_SECRET,
+            process.env.JWT_SECRET!,
             { expiresIn: "7d" }
         );
 
@@ -76,7 +72,7 @@ router.post("/verify-otp", otpVerifyLimiter, async (req: Request, res: Response,
             {
                 status: "Success",
                 message: "OTP verified successfully, user signed in",
-                token: permanentToken // Permanent token to use for user authentication
+                token: permanentToken as string // Permanent token to use for user authentication
             }
         );
         return;
