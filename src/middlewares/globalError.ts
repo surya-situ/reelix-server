@@ -1,4 +1,6 @@
 import { Request, Response, NextFunction } from "express";
+import { ZodError } from "zod";
+
 import { AppError } from "../utils/appError";
 
 export const globalError = (err: AppError, req: Request, res: Response, next: NextFunction) => {
@@ -9,7 +11,15 @@ export const globalError = (err: AppError, req: Request, res: Response, next: Ne
         {
             status: 'Failed',
             success: false,
-            message: message
+            message,
+            details: err.details || null
         }
     )
+};
+
+export const formatZodErrors = (error: ZodError) => {
+    return error.errors.map((err) => ({
+        field: err.path.join("."),
+        message: err.message,
+    }));
 };
