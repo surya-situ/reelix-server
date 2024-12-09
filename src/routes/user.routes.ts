@@ -8,7 +8,7 @@ import Redis from "ioredis";
 import jwt from "jsonwebtoken";
 
 import { authLimiter } from "../utils/rateLimit";
-import { signUpSchema } from "../validator/userValidator";
+import { signinSchema, signUpSchema } from "../validator/userValidator";
 import { appError } from "../utils/appError";
 import { formatZodErrors } from "../middlewares/globalError";
 import { sendEmail } from "../utils/email/emailStore";
@@ -60,14 +60,10 @@ router.post('/signup', authLimiter, async ( req: Request, res: Response, next: N
         const templatePath = path.resolve(__dirname, "../views/welcome.ejs");
         const emailHtml = await ejs.renderFile(templatePath, { name, otp });
 
-        if (!process.env.JWT_SECRET) {
-            throw new Error("JWT_SECRET is not defined in environment variables.");
-        }
-
         // - Generating a temporary JWT token to allow further user's email verification
         const tempToken = jwt.sign(
             { email },
-            process.env.JWT_SECRET,
+            process.env.JWT_SECRET!,
             { expiresIn: "5m" }
         );
 
@@ -105,6 +101,64 @@ router.post('/signup', authLimiter, async ( req: Request, res: Response, next: N
     } catch (error) {
         console.error("Error during signup:", error);
         return next(appError( 500, "Something went wrong while creating user"))
+    }
+});
+
+// - SIGN IN route:
+router.post('/signin', authLimiter, async ( req: Request, res: Response, next: NextFunction ) => {
+    const data = req.body;
+    const payload = signinSchema.safeParse(data);
+
+    // If validation fails, format Zod errors and send a validation error response
+    if( !payload.success ) {
+        const zodError = formatZodErrors(payload.error);
+        next(appError(422, "validation error", zodError));
+        return;
+    };
+
+    try {
+        const { email, password } = payload.data;
+
+        // Check if the user exists in the database using the email
+        let existingUser = await prisma.user.findUnique(
+            {
+                where: {
+                    email
+                }
+            }
+        );
+
+        if( !existingUser ) {
+            next(appError(404, 'User does not exists'));
+            return;
+        };
+
+        const comparePassword = await bcrypt.compare(password, existingUser.password);
+
+        if( !comparePassword ) {
+            next(appError(422, "Invalid email or password"));
+            return;
+        };
+
+        // Generate a JWT token with the user's ID and a 7-day expiry
+        const permanentToken = jwt.sign(
+            { userId: existingUser.id },
+            process.env.JWT_SECRET!,
+            { expiresIn: "7d" }
+        );
+
+        res.status(200).json(
+            {
+                status: "Success",
+                message: "User sign in successfully",
+                token: permanentToken as string // Permanent token to use for user authentication
+            }
+        );
+        return;
+
+    } catch (error) {
+        next(appError(500, "Something went wrong", error));
+        return;
     }
 });
 
