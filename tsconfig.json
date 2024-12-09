@@ -16,7 +16,8 @@
     "strictNullChecks": true            // Ensures stricter null checks
   },
   "include": [
-    "src/**/*.ts"                       // Specifies the source files to include
+    "src/**/*.ts",
+    "express.d.ts"                       // Specifies the source files to include
   ],
   "exclude": [
     "node_modules"                      // Excludes node_modules from type checking
