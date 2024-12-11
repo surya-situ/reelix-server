@@ -12,6 +12,7 @@ import { signinSchema, signUpSchema } from "../validator/userValidator";
 import { appError } from "../utils/appError";
 import { formatZodErrors } from "../middlewares/globalError";
 import { sendEmail } from "../utils/email/emailStore";
+import { authMiddleware } from "../middlewares/authMiddleware";
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -161,5 +162,39 @@ router.post('/signin', authLimiter, async ( req: Request, res: Response, next: N
         return;
     }
 });
+
+// GET USER DETAILS route:
+router.get('/getUserData', authMiddleware, async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        // Extract userId from the token
+        const userId = (req.user as { userId: string }).userId;
+
+        // Fetch user data from the database using Prisma
+        const user = await prisma.user.findUnique({
+            where: {
+                id: userId,
+            },
+            select: {
+                name: true,
+                email: true,
+            },
+        });
+
+        // If user not found, return an error
+        if (!user) {
+            return next(appError(404, "User not found"));
+        }
+
+        // Respond with user data
+        res.status(200).json({
+            status: "success",
+            data: user,
+        });
+    } catch (error) {
+        console.error("Error fetching user data:", error);
+        return next(appError(500, "Something went wrong while fetching user data"));
+    }
+});
+
 
 export default router;
