@@ -34,3 +34,18 @@ export const signinSchema = z.object(
         password: z.string({ message: "Password is required" })
     }
 );
+
+export const emailChangeSchema = z.object(
+    {
+        email: z.string({ message: "Email is required" })
+            .email({ message: "Invalid email address" })
+    }
+);
+
+export const nameChangeSchema = z.object(
+    {
+        name: z.string({ message: "Name is required" })
+        .min( 3, { message: "Name must be 3 or more characters long" })
+        .max(120, { message: "Name must not be more than 120 characters long" })
+    }
+);
