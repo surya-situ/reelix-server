@@ -1,0 +1,44 @@
+import { Router, Request, Response, NextFunction } from "express";
+import axios from "axios";
+import Redis from "ioredis";
+
+import { appError } from "../utils/appError";
+
+const router = Router();
+const redis = new Redis();
+
+router.get("/reelix-videos", async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        // Defining a cache key for storing the videos in Redis
+        const cacheKey = "reelix-videos";
+        const cachedData = await redis.get(cacheKey);
+
+        // If cached data exists, return the cached data as response
+        if( cachedData ) {
+            res.json(JSON.parse( cachedData ));
+            return;
+        };
+        
+        const url = process.env.REELIX_VIDEOS! + process.env.REELIX_API_KEY!
+        const response = await axios.get(url);
+
+        // Structuring the response data
+        const videos = {
+            status: "Success",
+            message: "Successfully fetched reelix videos",
+            data: response.data.items,
+            length: response.data.items.length
+        };
+
+        // Storing the fetched data in Redis with a 1-hour expiration time
+        await redis.setex(cacheKey, 3600, JSON.stringify(videos));
+
+        res.status(200).json(videos);
+        return;
+    } catch (error) {
+        next(appError(500, "Something went wrong while Fetching videos"));
+        return;
+    }
+});
+
+export default router;
