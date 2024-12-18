@@ -4,7 +4,7 @@
   "description": "A video duel application where user can create a duel between 2 videos and make a duel out of it",
   "main": "server.js",
   "scripts": {
-    "build": "tsc -b && cp -r src/views dist/views",
+    "build": "tsc -b && cp -r src/views/* dist/views",
     "start": "node dist/server.js",
     "dev": "npm run build && nodemon --watch src --ext ts,ejs --exec \"npm run build && node dist/server.js\""
   },
