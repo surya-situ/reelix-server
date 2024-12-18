@@ -18,8 +18,10 @@ router.get("/reelix-videos", async (req: Request, res: Response, next: NextFunct
             res.json(JSON.parse( cachedData ));
             return;
         };
-        
-        const url = process.env.REELIX_VIDEOS! + process.env.REELIX_API_KEY!
+
+        const apiUrl: string | undefined = process.env.REELIX_VIDEOS!;
+        const apiKey: string | undefined = process.env.REELIX_API_KEY!;
+        const url = `${apiUrl}${apiKey}`;
         const response = await axios.get(url);
 
         // Structuring the response data
