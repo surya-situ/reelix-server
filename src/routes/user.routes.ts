@@ -77,7 +77,7 @@ router.post('/signup', authLimiter, async ( req: Request, res: Response, next: N
         };
 
         // - Creating new user in the db
-        const newUser = await prisma.user.create(
+        await prisma.user.create(
             {
                 data: {
                     name,
@@ -93,7 +93,6 @@ router.post('/signup', authLimiter, async ( req: Request, res: Response, next: N
             {
                 status: "success",
                 message: "User created and OTP sent to email",
-                data: newUser, // User data
                 token: tempToken as string // Jwt token for user email verification in verify route
             }
         );
