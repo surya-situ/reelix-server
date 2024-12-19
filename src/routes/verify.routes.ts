@@ -26,7 +26,7 @@ router.post("/verify-otp", otpVerifyLimiter, async (req: Request, res: Response,
 
     // - Check for missing token
     if( !tempToken ) {
-        next(appError(401, "NO token is provided"));
+        next(appError(401, "No token is provided"));
         return;
     };
 
