@@ -14,15 +14,37 @@ datasource db {
 }
 
 model User {
-  id                            String     @id @default(uuid()) @db.Uuid
-  name                          String     @db.VarChar(120)
-  email                         String     @unique
+  id                            String        @id @default(uuid()) @db.Uuid
+  name                          String        @db.VarChar(120)
+  email                         String        @unique
   password                      String
-  is_verified                   Boolean    @default(false)
+  is_verified                   Boolean       @default(false)
   otp                           String?
   otp_expire_at                 DateTime?
   password_reset_otp            String?
   reset_otp_expire_at           DateTime?
-  created_at                    DateTime   @default(now())
-  updated_at                    DateTime   @updatedAt
+  created_at                    DateTime      @default(now())
+  updated_at                    DateTime      @updatedAt
+  battle                        Battle[]
+}
+
+model Battle {
+  id                            String        @id @default(uuid()) @db.Uuid
+  user                          User          @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user_id                       String        @db.Uuid
+  title                         String
+  description                   String?
+  videos                        String
+  created_at                    DateTime      @default(now())
+  expire_at                     DateTime
+  battleItem                    BattleItem[]
+}
+
+model BattleItem {
+  id                            String        @id @default(uuid()) @db.Uuid
+  battle                        Battle        @relation(fields: [battle_id], references: [id], onDelete: Cascade)
+  battle_id                     String        @db.Uuid
+  video                         String  
+  count                         Int           @default(0)
+  created_at                    DateTime      @default(now())
 }
