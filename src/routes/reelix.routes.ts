@@ -35,8 +35,8 @@ router.get("/popular-reelix-videos", async (req: Request, res: Response, next: N
             length: popularVideos.length
         };
 
-        // Storing the fetched data in Redis with a 1-hour expiration time
-        await redis.setex(cacheKey, 3600, JSON.stringify(videos));
+        // Storing the fetched data in Redis with a 10-minutes expiration time
+        await redis.setex(cacheKey, 600, JSON.stringify(videos));
 
         res.status(200).json(videos);
         return;
@@ -72,8 +72,8 @@ router.get("/reelix-videos",authMiddleware, async (req: Request, res: Response, 
             length: response.data.items.length
         };
 
-        // Storing the fetched data in Redis with a 1-hour expiration time
-        await redis.setex(cacheKey, 3600, JSON.stringify(videos));
+        // Storing the fetched data in Redis with a 10-minutes expiration time
+        await redis.setex(cacheKey, 600, JSON.stringify(videos));
 
         res.status(200).json(videos);
         return;
