@@ -71,16 +71,15 @@ router.post("/verify-otp", otpVerifyLimiter, async (req: Request, res: Response,
         res.status(200).json(
             {
                 status: "Success",
-                message: "OTP verified successfully, user signed in",
-                token: permanentToken as string // Permanent token to use for user authentication
+                message: "OTP verified successfully, user signed in", 
+                token: permanentToken as string // Permanent token to use for user authorization
             }
         );
         return;
 
     } catch (error) {
-        next(appError(500, "Something went wrong", error))
+        next(appError(500, "Something went wrong", error));
+        return;
     }
 
 });
-
-export default router;
