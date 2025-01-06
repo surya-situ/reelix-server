@@ -41,7 +41,7 @@ export const otpVerifyLimiter = rateLimit(
     }
 );
 
-export const reelixDuelLimiter = rateLimit(
+export const reelixBattleLimiter = rateLimit(
     {
         windowMs: 5 * 60 * 1000,
         limit: 3,
