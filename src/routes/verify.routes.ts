@@ -83,3 +83,5 @@ router.post("/verify-otp", otpVerifyLimiter, async (req: Request, res: Response,
     }
 
 });
+
+export default router;
