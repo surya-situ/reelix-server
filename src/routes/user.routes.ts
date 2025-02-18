@@ -6,6 +6,7 @@ import { randomInt } from "crypto";
 import ejs from "ejs";
 import Redis from "ioredis";
 import jwt from "jsonwebtoken";
+import cron from "node-cron";
 
 import { authLimiter } from "../utils/rateLimit";
 import { signinSchema, signUpSchema } from "../validator/userValidator";
@@ -162,7 +163,7 @@ router.post('/signin', authLimiter, async ( req: Request, res: Response, next: N
     }
 });
 
-// GET USER DETAILS route:
+// - GET USER DETAILS route:
 router.get('/getUserData', authMiddleware, async (req: Request, res: Response, next: NextFunction) => {
     try {
         // Extract userId from the token
@@ -194,6 +195,46 @@ router.get('/getUserData', authMiddleware, async (req: Request, res: Response, n
         return next(appError(500, "Something went wrong while fetching user data"));
     }
 });
+
+// - DELETE route:
+router.delete("/delete-account",authMiddleware, async (req: Request, res: Response, next: NextFunction) => {
+    // Extract userId from the token
+    const userId = (req.user as { userId: string }).userId;
+
+    if (!userId) {
+        next(appError(401, "Unauthorized"));
+        return;
+    }
+
+    try {
+        const user = await prisma.user.findUnique({ where: { id: userId } });
+
+        if (!user) {
+            next(appError(404, "User not found"));
+        }
+
+        if (user!.delete_at) {
+            next(appError(400, "Account deletion not scheduled"));
+            return;
+        }
+
+        const currentDate = new Date();
+        const deleteAt = new Date(user!.delete_at!);
+
+        if (currentDate.toISOString().split("T")[0] >= deleteAt.toISOString().split("T")[0]) {
+            await prisma.user.delete({ where: { id: userId } });
+            res.status(200).json({ status: "success", message: "Account deleted successfully." });
+            return;
+        } else {
+            next(appError(400, "Account deletion scheduled for a later date"));
+            return;
+        }
+    } catch (error) {
+        console.error("Error during account deletion:", error);
+        next(appError(500, "Something went wrong while deleting account"));
+    }
+});
+
 
 
 export default router;
