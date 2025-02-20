@@ -236,5 +236,61 @@ router.delete("/delete-account",authMiddleware, async (req: Request, res: Respon
 });
 
 
+router.post("/schedule-delete", async (req: Request, res: Response, next: NextFunction) => {
+    // Extract userId from the token
+    const userId = (req.user as { userId: string }).userId;
+
+    if (!userId) {
+        return next(appError(401, "Unauthorized"));
+    }
+
+    try {
+        const deleteAt = new Date();
+        deleteAt.setDate(deleteAt.getDate() + 7); // Set delete_at 7 days from now
+
+        await prisma.user.update({
+            where: { id: userId },
+            data: { delete_at: deleteAt },
+        });
+
+        res.status(200).json({
+            status: "success",
+            message: `Your account will be deleted on ${deleteAt.toISOString()}`,
+        });
+    } catch (error) {
+        console.error("Error scheduling account deletion:", error);
+        next(appError(500, "Something went wrong while scheduling account deletion"));
+    }
+});
+
+// Run daily at midnight
+cron.schedule("0 0 * * *", async () => {
+    console.log("Running scheduled task to check account deletions");
+
+    try {
+        let deletedCount = 0;
+        const batchSize = 100; // Adjust based on database performance
+
+        while (true) {
+            const usersToDelete = await prisma.user.findMany({
+                where: { delete_at: { lt: new Date() } },
+                take: batchSize,
+            });
+
+            if (usersToDelete.length === 0) break;
+
+            for (const user of usersToDelete) {
+                await prisma.user.delete({ where: { id: user.id } });
+                console.log(`User with ID ${user.id} deleted successfully`);
+                deletedCount++;
+            }
+        }
+
+        console.log(`Deleted ${deletedCount} users in batch process.`);
+    } catch (error) {
+        console.error("Error in scheduled account deletion:", error);
+    }
+});
+
 
 export default router;
